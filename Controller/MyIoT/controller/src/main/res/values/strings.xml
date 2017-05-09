@@ -1,0 +1,65 @@
+<resources>
+    <string name="app_name">Controller</string>
+    <string name="app_configure">Configure my device</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+
+    <!-- Strings related to ToolBar -->
+    <string name="toolbar_refresh">Refresh</string>
+    <string name="toolbar_settings">Settings</string>
+    <string name="toolbar_add_device">Add device</string>
+    <string name="toolbar_preference">Preference</string>
+    <string name="toolbar_about">About</string>
+
+
+    <string name="guide_power_on">Setp 1: Power on your device and press the reset button.</string>
+    <string name="guide_scan_qr">Step 2: Scan QR code.</string>
+    <string name="guide_connect_wifi">Step 3: Connect to Access Point.</string>
+    <string name="guide_config">Final Step: Personalize your device.</string>
+
+    <string name="notice_power_on">Notice: Once the configuration is done, the device will connect to the server automatically, and it will then turn its blue LED.\nYou can also cancel this configuration at anytime by pressing the \'Back\' Button.</string>
+
+    <string name="btn_qr_device_scan">Scan Device</string>
+    <string name="btn_qr_device_scanned">Scanned</string>
+    <string name="qr_device_scanning">Scanning device</string>
+    <string name="qr_device_scan_failed">Please scan the right QR code!</string>
+    <string name="qr_device_scan_successfully">Device info imported successfully!</string>
+    <string name="qr_device_scan_cancelled">Scan cancelled, please scan again!</string>
+
+    <string name="btn_configure">Configure</string>
+    <string name="btn_configured">All Done</string>
+    <string name="chk_modifyHomeWiFi">Enable configuring Home WiFi</string>
+    <string name="configuring">Configuring…</string>
+    <string name="notify_config_error">SSID, Password and Display Name cannot be empty.</string>
+    <string name="notify_config_error_title">Display Name cannot be empty.</string>
+    <string name="notify_config_done">You have successfully configured your device.</string>
+    <string name="notify_config_failed">Configuration failed, please reset your device and do it again!</string>
+    <string name="notice_config">Notice: If it does not response, please manually connect to %1$s and configure it again.\nYou can also configure your device multiple times until the device is connected to the server.</string>
+    <string name="notice_config_ac">Notice: Press Back Button to go back to Main Screen.\nYou can also configure your device multiple times until you changed the Home WiFi.</string>
+
+    <string name="btn_wifi_connect">Connect</string>
+    <string name="btn_wifi_connected">Connected</string>
+    <string name="wifi_connecting">Connecting…</string>
+    <string name="wifi_authenticating">Authenticating…</string>
+    <string name="wifi_connected">Connected!</string>
+    <string name="wifi_connection_failed">Connection failed!</string>
+    <string name="wifi_obtaining_ipaddr">Obtaining IP Address…</string>
+    <string name="wifi_disconnected">Disconnected, reconnecting…</string>
+    <string name="wifi_scanning">Scanning…</string>
+    <string name="notify_device_not_found">Didn\'t find the Access Point, please enable Location and check your device\'s status..</string>
+    <string name="notice_connect_wifi">Notice: Be patient, it may take minutes to process.</string>
+
+    <string name="wifi_ssid">SSID:</string>
+    <string name="wifi_username">Home WiFi Username (Optional)</string>
+    <string name="wifi_psk">Home WiFi Password</string>
+
+    <string name="device_title">Display Name</string>
+    <string name="device_sync_interval">Sync Interval (Second)</string>
+    <string name="title_activity_main2">MainActivity2</string>
+
+    <string name="set_device_failed">Lost connection to the device, please check your device and wifi state.</string>
+    <string name="scan_network_no_wifi">Please connect to your home wifi and scan again!</string>
+</resources>

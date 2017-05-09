@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/my_controller_height"
+    android:background="@drawable/corner_round"
+    android:orientation="horizontal"
+    android:paddingLeft="@dimen/my_controller_horizontal_margin"
+    android:paddingRight="@dimen/my_controller_horizontal_margin"
+    android:paddingTop="@dimen/my_controller_vertical_margin"
+    android:paddingBottom="@dimen/my_controller_vertical_margin">
+
+    <TextView
+        android:id="@+id/deviceName"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/font_size_medium"/>
+
+    <Switch
+        android:id="@+id/deviceSwitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="0"/>
+</LinearLayout>

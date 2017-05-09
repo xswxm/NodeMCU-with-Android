@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/textView_horizontal_margin"
+            android:layout_marginRight="@dimen/textView_horizontal_margin"
+            android:orientation="vertical" >
+            <ImageView
+                android:layout_width="@dimen/image_width"
+                android:layout_height="@dimen/image_height"
+                android:layout_marginTop="@dimen/image_top_margin"
+                android:layout_marginBottom="@dimen/image_bottom_margin"
+                android:scaleType="centerCrop"
+                android:layout_gravity="center"
+                android:src="@drawable/pic_guidepage_wifi" />
+            <!--image resource form: https://pixabay.com/en/wifi-wireless-internet-icons-798314/-->
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/textView_bottom_margin"
+                android:gravity="center"
+                android:textSize="@dimen/font_size_large"
+                android:textColor="@android:color/black"
+                android:text="@string/guide_connect_wifi" />
+            <Button
+                android:id="@+id/btn_connectWiFi"
+                android:layout_width="@dimen/button_width"
+                android:layout_height="@dimen/button_height"
+                android:layout_marginTop="@dimen/button_top_margin"
+                android:layout_marginBottom="@dimen/button_bottom_margin"
+                android:layout_gravity="center"
+                android:background="@drawable/button_shape"
+                android:text="@string/btn_wifi_connect"
+                android:textSize="@dimen/font_size_medium"/>
+        </LinearLayout>
+    </ScrollView>
+    <TextView
+        android:id="@+id/text_wifiStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/textView_scan_bottom_margin"
+        android:layout_alignParentBottom="true"
+        android:layout_centerInParent="true"
+        android:textSize="@dimen/font_size_medium" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/notice_connect_wifi"
+        android:layout_alignParentBottom="true"
+        android:textSize="@dimen/font_size_small"/>
+</RelativeLayout>
