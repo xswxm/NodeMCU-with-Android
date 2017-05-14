@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/MyIoT.iml" filepath="$PROJECT_DIR$/MyIoT.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Controller.iml" filepath="$PROJECT_DIR$/Controller.iml" />
       <module fileurl="file://$PROJECT_DIR$/controller/controller.iml" filepath="$PROJECT_DIR$/controller/controller.iml" />
     </modules>
   </component>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/textView_horizontal_margin"
+            android:layout_marginRight="@dimen/textView_horizontal_margin"
+            android:orientation="vertical" >
+
+            <ImageView
+                android:layout_width="@dimen/image_width"
+                android:layout_height="@dimen/image_height"
+                android:layout_marginTop="@dimen/image_top_margin"
+                android:layout_marginBottom="@dimen/image_bottom_margin"
+                android:scaleType="centerCrop"
+                android:layout_gravity="center"
+                android:src="@drawable/pic_guidepage_configuration" />
+            <!--image resource form: https://www.iconfinder.com/icons/284841/key_lock_locked_login_open_password_icon-->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/textView_bottom_margin"
+                android:textSize="@dimen/font_size_large"
+                android:gravity="center"
+                android:textColor="@android:color/black"
+                android:text="Step 2: Select your previous record." />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/textView_horizontal_margin"
+                android:layout_marginRight="@dimen/textView_horizontal_margin"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:layout_gravity="center_vertical"
+                    android:text="@string/wifi_ssid"/>
+                <Spinner
+                    android:id="@+id/spinner_existed_ssid"
+                    android:layout_weight="1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="fill_parent"/>
+                <ImageView
+                    android:id="@+id/img_ref_existed_ssid"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tint="@android:color/darker_gray"
+                    android:src="@drawable/ic_menu_refresh"/>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</RelativeLayout>

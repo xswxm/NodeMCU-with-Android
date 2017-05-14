@@ -22,6 +22,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -48,17 +49,23 @@ public class GuideActivity extends Activity implements View.OnClickListener {
 
     private ViewPager viewPager;
     private Button scanQRBtn;
+
+    private Spinner existedSSIDSpinner;
+    private ImageView refreshExistedSSIDBtn;
+    private Button selectWiFiBtn;
     private Button connectWiFiBtn;
     private TextView wifiStatusTextView;
     private Button configBtn;
     private Spinner ssidSpinner;
     private boolean isLocked = false;
     private boolean isQRScanned = false;
+    private boolean isExistedWiFiSelected = false;
     private boolean isWiFiConnected = false;
     private boolean isConfigured = false;
     private WifiManager wifiManager;
     private ImageView refreshSSIDBtn;
     private TextView notifyTxv;
+    private boolean first_config;
 
     //Load guiding pages
     private static final int[] pages = { R.layout.activity_guide_poweron,
@@ -73,7 +80,21 @@ public class GuideActivity extends Activity implements View.OnClickListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        //Justify if it is the first-time configuration or configuration for fixing devices after installations.
+        //and then load different pages to the activity based on users' preference.
+
+        Intent intent = getIntent();
+        first_config = intent.getBooleanExtra("com.xswxm.controller.first_config", true);
+        if (first_config) {
+            pages[1] = R.layout.activity_guide_scanqr;
+        } else {
+            pages[1] = R.layout.activity_guide_select_exists;
+        }
+
+        //Load activity_guide.
         setContentView(R.layout.activity_guide);
+
         Context context = this;
         wifiManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
 
@@ -87,9 +108,38 @@ public class GuideActivity extends Activity implements View.OnClickListener {
                 case 0:
                     break;
                 case 1:
-                    scanQRBtn = (Button) view.findViewById(R.id.btn_scanQR);
-                    scanQRBtn.setTag("scanQR");
-                    scanQRBtn.setOnClickListener(this);
+                    if (first_config) {
+                        scanQRBtn = (Button) view.findViewById(R.id.btn_scanQR);
+                        scanQRBtn.setTag("scanQR");
+                        scanQRBtn.setOnClickListener(this);
+                    } else {
+                        refreshExistedSSIDBtn = (ImageView) view.findViewById(R.id.img_ref_existed_ssid);
+                        refreshExistedSSIDBtn.setTag("refreshExistedSSID");
+                        refreshExistedSSIDBtn.setOnClickListener(this);
+                        existedSSIDSpinner = (Spinner) view.findViewById(R.id.spinner_existed_ssid);
+                        existedSSIDSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                String selectSSID = existedSSIDSpinner.getSelectedItem().toString();
+                                if (selectSSID.isEmpty()) {
+                                    isExistedWiFiSelected = false;
+                                    isLocked = true;
+                                } else {
+                                    //WifiPSK is not necessary as the the configuration of this access point of the device has already been stored in the wifi Manager
+                                    wifiSSID = selectSSID;
+                                    Log.e("Selected SSID", selectSSID);
+                                    isExistedWiFiSelected = true;
+                                    isLocked = false;
+                                }
+                            }
+
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+                                isExistedWiFiSelected = false;
+                                isLocked = true;
+                            }
+                        });
+                    }
                     break;
                 case 2:
                     connectWiFiBtn = (Button) view.findViewById(R.id.btn_connectWiFi);
@@ -180,10 +230,16 @@ public class GuideActivity extends Activity implements View.OnClickListener {
             case "scanQR":
                 ScanQRCode();
                 return;
+            case "refreshExistedSSID":
+                RefreshAnimation.showRefreshAnimation(refreshExistedSSIDBtn, this);
+                wifiManager.startScan();
+                registerReceiver(wifiScanReceiverForSelection, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+                break;
             case "connectWiFi":
                 ForceConnectWiFi();
                 return;
             case "config":
+                // In the case, wifiSSID and wifiPSK will be reused as the SSID and PSK for the Home WiFi
                 EditText deviceUnameEdt = (EditText) findViewById(R.id.edt_uname);
                 EditText wifipskEdt = (EditText) findViewById(R.id.edt_psk);
                 EditText wifiTitleEdt = (EditText) findViewById(R.id.edt_title);
@@ -227,6 +283,18 @@ public class GuideActivity extends Activity implements View.OnClickListener {
     }
 
     /*
+     * Refresh the SSID list once we received new wifi scan results for selecting wifi records
+     */
+    private final BroadcastReceiver wifiScanReceiverForSelection = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            RefreshAnimation.hideRefreshAnimation(refreshExistedSSIDBtn);
+            RefreshExistedSSIDSpinner();
+            context.unregisterReceiver(wifiScanReceiverForSelection);
+        }
+    };
+
+    /*
      * Refresh the SSID list once we received new wifi scan results
      */
     private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
@@ -253,12 +321,74 @@ public class GuideActivity extends Activity implements View.OnClickListener {
     }
 
     /*
-     * Justify the QR code we scanned.
+     * Refresh existed SSID
+     * Check the ssid in the current network match with the saved network configurations in the wifi Manager
+     * Added the result to the spinner/list if the record exists.
+     */
+    private void RefreshExistedSSIDSpinner() {
+        List<String> ssidList = new ArrayList<String>();
+        // Here, thisActivity is the current activity
+        for (ScanResult scanResult : getScanResults(2)) {
+            Log.e("SSID list child", scanResult.SSID);
+            ssidList.add(scanResult.SSID);
+        }
+
+        if (ssidList.size() > 0) {
+            //Keep the ssid start with "ESP" and remove others
+            //it is important to scan the ssidList from its botton to top because we have to remove items by using item id.
+            for (int i = ssidList.size() - 1; i >= 0; i--) {
+                if (ssidList.get(i).length() != 10) {
+                    Log.e("RemoveSSID",  ssidList.get(i));
+                    ssidList.remove(i);
+                } else {
+                    if (!ssidList.get(i).substring(0,3).equals("ESP")) {
+                        Log.e("RemoveSSID",  ssidList.get(i));
+                        ssidList.remove(i);
+                    }
+                }
+            }
+
+            //check existence
+            if (ssidList.size() > 0) {
+                boolean remove;
+                for (int i = ssidList.size() - 1; i >= 0; i--) {
+                    //Check existence, set a boolean value 'remove' as the tag to remove the item
+                    remove = true;
+                    for( WifiConfiguration wifiConfiguration : wifiManager.getConfiguredNetworks() ) {
+                        if(wifiConfiguration.SSID != null && wifiConfiguration.SSID.equals("\"" + ssidList.get(i) + "\"")) {
+                            remove = false;
+                            break;
+                        }
+                    }
+                    //Remove the item if it does not match any of the records
+                    if (remove) {
+                        Log.e("RemoveSSID",  ssidList.get(i));
+                        ssidList.remove(i);
+                    }
+                }
+            }
+
+            //Because the ssidList must contain at least one item to let users to select, add an empty item if the the ssidList is empty.
+            if (ssidList.size() == 0) {
+                ssidList.add("");
+                //Notify users did not find any available wifi records in the wifi Manager.
+                Toast.makeText(this, "Do not find any resonable wifi records, try to scan again!", Toast.LENGTH_SHORT).show();
+            }
+        }
+        Log.e("SSID List",  ssidList.toString());
+        ArrayAdapter adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, ssidList);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        existedSSIDSpinner.setAdapter(adapter);
+    }
+
+    /*
+     * Override this method to read the QR code we scanned if users are doing the first-time configuration.
      * Enable users to go to next step if the QR code contains the information we want.
-     * otherwise, users have to scan one again manually.
+     * otherwise, ask users to scan one again manually.
      */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.e("onActivityResult", Integer.toString(resultCode));
         IntentResult intentResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
         if (intentResult != null) {
             if (intentResult.getContents() != null) {
@@ -303,9 +433,16 @@ public class GuideActivity extends Activity implements View.OnClickListener {
         public void onPageSelected(int position) {
             switch (position) {
                 case 1:
-                    if (!isQRScanned) {
-                        isLocked = true;
-                        ScanQRCode();    //Scan QR code to import WiFi SSID and Password.
+                    if (first_config) {
+                        if (!isQRScanned) {
+                            isLocked = true;
+                            ScanQRCode();    //Scan QR code to import WiFi SSID and Password.
+                        }
+                    } else {
+                        if (!isExistedWiFiSelected) {
+                            isLocked = true;
+                            RefreshExistedSSIDSpinner();
+                        }
                     }
                     break;
                 case 2:
@@ -363,21 +500,24 @@ public class GuideActivity extends Activity implements View.OnClickListener {
         }
 
         //Add wifi configuration (SSID and Password) to the WiFiConfiguration
-        List<WifiConfiguration> list;
-        //Update list
-        list = wifiManager.getConfiguredNetworks();
-        for( WifiConfiguration wifiConfiguration : list ) {
-            Log.e("WifiConfiguration",  wifiConfiguration.SSID);
-            if(wifiConfiguration.SSID != null && wifiConfiguration.SSID.equals("\"" + wifiSSID + "\"")) {
-                wifiManager.removeNetwork(wifiConfiguration.networkId);
-                Log.e("RemoveWifiConfiguration",  wifiConfiguration.SSID);
+        //This should be only executed for the first-time configuration.
+        if (first_config) {
+            List<WifiConfiguration> list;
+            //Update list
+            list = wifiManager.getConfiguredNetworks();
+            for( WifiConfiguration wifiConfiguration : list ) {
+                Log.e("WifiConfiguration",  wifiConfiguration.SSID);
+                if(wifiConfiguration.SSID != null && wifiConfiguration.SSID.equals("\"" + wifiSSID + "\"")) {
+                    wifiManager.removeNetwork(wifiConfiguration.networkId);
+                    Log.e("RemoveWifiConfiguration",  wifiConfiguration.SSID);
+                }
             }
+            WifiConfiguration conf = new WifiConfiguration();
+            conf.SSID = "\"" + wifiSSID + "\"";
+            conf.preSharedKey = "\""+ wifiPSK +"\"";
+            wifiManager.addNetwork(conf);
+            Log.e("AddWifiConfiguration", wifiSSID);
         }
-        WifiConfiguration conf = new WifiConfiguration();
-        conf.SSID = "\"" + wifiSSID + "\"";
-        conf.preSharedKey = "\""+ wifiPSK +"\"";
-        wifiManager.addNetwork(conf);
-        Log.e("AddWifiConfiguration", wifiSSID);
 
         //Scan WiFi
         connectWiFiBtn.setEnabled(false);
@@ -454,7 +594,7 @@ public class GuideActivity extends Activity implements View.OnClickListener {
      */
     private boolean autoDisconnect = false;
     private void ConnectWiFi(Context context, Intent intent) {
-        for (ScanResult scanResult : getScanResults(2)) {
+        for (ScanResult scanResult : getScanResults(3)) {
             if (scanResult.SSID.equals(wifiSSID)) {
                 for (WifiConfiguration wifiConfiguration : wifiManager.getConfiguredNetworks()) {
                     if (wifiConfiguration.SSID.equals("\"" + wifiSSID + "\"")) {
@@ -502,6 +642,9 @@ public class GuideActivity extends Activity implements View.OnClickListener {
                     RefreshSSIDSpinner();
                     break;
                 case 2:
+                    RefreshExistedSSIDSpinner();
+                    break;
+                case 3:
                     ForceConnectWiFi();
                     break;
             }
@@ -545,9 +688,10 @@ public class GuideActivity extends Activity implements View.OnClickListener {
             Log.e("Received from ESP", responseMsg);
             if (!responseMsg.isEmpty()) {
                 toastMsg = getString(R.string.notify_config_done);
+                configBtn.setText(getString(R.string.btn_configure));
                 //for test purpose, the following lines are commented
-                configBtn.setText(getString(R.string.btn_configured));
-                configBtn.setTag("allDone");
+                //configBtn.setText(getString(R.string.btn_configured));
+                //configBtn.setTag("allDone");
             } else {
                 toastMsg = getString(R.string.notify_config_failed);
                 configBtn.setText(getString(R.string.btn_configure));

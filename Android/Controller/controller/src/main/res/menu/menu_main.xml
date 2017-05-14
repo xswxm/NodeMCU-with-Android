@@ -12,9 +12,9 @@
         android:orderInCategory="2"
         android:title="@string/toolbar_add_device"
         app:showAsAction="never"  />
-<!--    <item
-        android:id="@+id/action_settings"
+    <item
+        android:id="@+id/action_fix_device"
         android:orderInCategory="3"
-        android:title="@string/action_settings"
-        app:showAsAction="never" />-->
+        android:title="@string/toolbar_fix_device"
+        app:showAsAction="never" />
 </menu>

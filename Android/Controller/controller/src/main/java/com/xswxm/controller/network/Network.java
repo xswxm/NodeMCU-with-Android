@@ -114,6 +114,7 @@ public class Network {
                                         device.setPadding(0,16,0,16);
                                         device.setDeviceEnabled(false);
                                         deviceList.addView(device);
+                                        Log.e("Added Device ", finalIPAddr);
                                         // Check if the IP Address is an available device
                                         // Assign events if it is, otherwise remove this IP Address from the device list
                                         CheckDevice checkDevice = new CheckDevice();
@@ -159,12 +160,13 @@ public class Network {
         @Override
         protected void onPostExecute(String deviceTitle) {
             if (deviceTitle.isEmpty()) {
-                View device = deviceList.findViewById(deviceID);
+                //View device = deviceList.findViewById(deviceID);
                 deviceList.removeView(device);
-                Log.e("HTTP", "removeDevice succeed!");
+                Log.e("Removed Device", device.ipAddr);
+
             } else {
                 String[] str = deviceTitle.split("\u0000");
-                Log.e("onPostExecute", Arrays.toString(str));
+                Log.e("HTTP response from " + device.ipAddr, Arrays.toString(str));
                 device.setText(str[0]);
                 if (str[1].equals("1")) {
                     device.setChecked(false);
@@ -172,6 +174,7 @@ public class Network {
                     device.setChecked(true);
                 }
                 device.setDeviceEnabled(true);
+                Log.e("Updated Device", str[0]);
             }
         }
     }

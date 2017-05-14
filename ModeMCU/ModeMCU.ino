@@ -14,12 +14,11 @@ bool ap_mode = true;    //indicate if ESP needs AP mode
 bool sta_mode = false;    //indicate if ESP needs STA mode
 
 /*
- * Blink a LED
+ * Blink the LED
  * pin: the pin the LED used
  * num: times to blink
  */
 void blinkLED(int pin, int num, int interval) {
-    digitalWrite(pin, 1);  //Turn off the LED first
     for (int i = 0; i < num; i++) {
         digitalWrite(pin, 0);
         delay(interval);
@@ -274,6 +273,7 @@ void clickCheck() {
         WiFi.mode(WIFI_AP);
         sta_mode = false;
         enableAP();
+        digitalWrite(LED, 1);
     }
     // Be care to press this button, you probably have to recreate an QR code
     // since the password will be changed after pressing this button
@@ -290,7 +290,6 @@ void loop() {
     delay(100);
     server.handleClient();
     if (ap_mode && sta_mode) {
-        digitalWrite(LED, 0);
         if (WiFi.status() != WL_CONNECTED) {
             Serial.print(".");
         }
@@ -306,17 +305,15 @@ void loop() {
             Serial.println(WiFi.localIP());
             WiFi.mode(WIFI_STA);
             disableAP();
-            //Blink the LED 5 times to notify users it has connected to the Home WiFi
-            blinkLED(LED, 5, 100);
+            //Blink the LED 3 times to notify users it has connected to the Home WiFi
+            blinkLED(LED, 3, 100);
             //Start SocketIO, connect server
         }
     }
     else if (ap_mode) {
-        digitalWrite(LED, 0);
         server.handleClient();
     }
     else if (sta_mode) {
-        digitalWrite(LED, 1);
         // If ESP somehow dropped the Home Wifi connection
         // 1. enale AP mode;
         // 2. turn off the LED: Home Wifi is disconnected

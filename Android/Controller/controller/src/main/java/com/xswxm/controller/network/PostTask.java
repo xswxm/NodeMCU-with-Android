@@ -30,7 +30,7 @@ public class PostTask extends AsyncTask<Object, Object, String> {
                 return "";
             }
             httpURLConnection.setRequestMethod("HEAD");
-            httpURLConnection.setConnectTimeout(3000); //set timeout to 3 seconds
+            httpURLConnection.setConnectTimeout(5000); //set timeout to 5 seconds
 
 
             String urlParameters = devicePostText;

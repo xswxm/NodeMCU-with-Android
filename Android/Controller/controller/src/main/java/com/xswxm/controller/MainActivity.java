@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
+        Intent intent;
         //noinspection SimplifiableIfStatement
         switch (id) {
             case R.id.action_refresh:
@@ -60,7 +61,13 @@ public class MainActivity extends AppCompatActivity {
                 new Network(this).ScanNetwork();
                 return true;
             case R.id.action_add_device:
-                Intent intent = new Intent(this, GuideActivity.class);
+                intent = new Intent(this, GuideActivity.class);
+                intent.putExtra("com.xswxm.controller.first_config", true);
+                startActivity(intent);
+                return  true;
+            case R.id.action_fix_device:
+                intent = new Intent(this, GuideActivity.class);
+                intent.putExtra("com.xswxm.controller.first_config", false);
                 startActivity(intent);
                 return  true;
 /*            case R.id.action_settings:
