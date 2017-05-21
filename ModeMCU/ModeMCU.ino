@@ -19,6 +19,9 @@ bool sta_mode = false;    //indicate if ESP needs STA mode
  * num: times to blink
  */
 void blinkLED(int pin, int num, int interval) {
+    //Set the lED to be off at first
+    digitalWrite(pin, 1);
+    delay(interval);
     for (int i = 0; i < num; i++) {
         digitalWrite(pin, 0);
         delay(interval);
@@ -56,7 +59,7 @@ void configure() {
     server.send(200, "text/plain", readEEPROM(224, 256));
     Serial.println("--------Set configuration end----------");
     //Blink the LED twice: notify users the configuration is satisfied
-    blinkLED(LED, 2, 100);
+    blinkLED(LED, 2, 200);
 }
 
 /*
@@ -65,7 +68,7 @@ void configure() {
 void getDevice() {
     server.send(200, "text/plain", String(readEEPROM(224, 256)) + char(0) + String(digitalRead(LIGHTBULB)));
     //Blink the LED once to notify users it received a request
-    blinkLED(LED, 1, 100);
+    blinkLED(LED, 1, 200);
 }
 
 /*
@@ -86,7 +89,7 @@ void setDevice() {
         Serial.println(val);
     }
     //Blink the LED once to notify users it received a request
-    blinkLED(LED, 1, 100);
+    blinkLED(LED, 1, 200);
 }
 
 
@@ -185,12 +188,15 @@ void initDevice() {
     Serial.begin(9600);
     EEPROM.begin(512);
 
-    //Turn on the LED and turn off the LightBowl
+    //Turn on the LED and turn off the LightBulb
     digitalWrite(LED, 0);
     digitalWrite(LIGHTBULB, 1);
 
     //Generate ssid and random password for the first boot
-    if (strlen(readEEPROM(0, 32)) == 0) {
+    if (strlen(readEEPROM(0, 32)) != 10 || strlen(readEEPROM(32, 96)) != 32) {
+        //Clear EEPROM
+        clearEEPROM(0, 512);
+        //Initialize SSID and PSK
         writeEEPROM(0, 32, getSSID());
         writeEEPROM(32, 96, getPSK(32));
     }
@@ -252,10 +258,8 @@ void connetHomeWiFi() {
 void setup() {
     initDevice();
     createHTTPServer();
-
-    if (ap_mode) {
-        enableAP();
-    }
+    //enableAP();
+    
     if (sta_mode) {
         connetHomeWiFi();
     }
@@ -267,17 +271,20 @@ void setup() {
 void clickCheck() {
     // Erase all user settings, disable STA mode and enable AP mode
     if (digitalRead(USER_RESET) == 0) {
+        while (digitalRead(USER_RESET) == 0);
         clearEEPROM(128, 256);
         Serial.println();
         Serial.println("User settings have been cleaned.");
         WiFi.mode(WIFI_AP);
         sta_mode = false;
         enableAP();
-        digitalWrite(LED, 1);
+        digitalWrite(LED, 0);
+        digitalWrite(LIGHTBULB, 1);
     }
     // Be care to press this button, you probably have to recreate an QR code
     // since the password will be changed after pressing this button
     if (digitalRead(FACTORY_RESET) == 0) {
+        while (digitalRead(FACTORY_RESET) == 0);
         clearEEPROM(0, 512);
         Serial.println();
         Serial.println("All settings have been cleaned, rebooting device...");
@@ -290,6 +297,7 @@ void loop() {
     delay(100);
     server.handleClient();
     if (ap_mode && sta_mode) {
+        digitalWrite(LED, 0);
         if (WiFi.status() != WL_CONNECTED) {
             Serial.print(".");
         }
@@ -306,17 +314,18 @@ void loop() {
             WiFi.mode(WIFI_STA);
             disableAP();
             //Blink the LED 3 times to notify users it has connected to the Home WiFi
-            blinkLED(LED, 3, 100);
+            blinkLED(LED, 3, 200);
             //Start SocketIO, connect server
         }
     }
     else if (ap_mode) {
-        server.handleClient();
+        digitalWrite(LED, 0);
     }
     else if (sta_mode) {
         // If ESP somehow dropped the Home Wifi connection
         // 1. enale AP mode;
         // 2. turn off the LED: Home Wifi is disconnected
+        digitalWrite(LED, 1);
         if (WiFi.status() != WL_CONNECTED) {
             Serial.println("Home WiFi dropped, reconnecting...");
             WiFi.mode(WIFI_AP_STA);
