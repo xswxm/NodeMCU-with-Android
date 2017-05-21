@@ -1,0 +1,6 @@
+The videos captured for the NoduMCU in the video files have delays because I am using an Android Phone to monitor the device but not an real usb camera. Hence, you will notice that the device ususlly responses after few hundrds milliseconds or longer.
+
+
+-------- Tools Used --------
+1. Icecream Screen Recorder: Record Desktop Video
+2. DroidCamApp: Monitor the device
