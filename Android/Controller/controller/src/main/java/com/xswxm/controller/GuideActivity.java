@@ -35,6 +35,7 @@ import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 import com.xswxm.controller.animation.RefreshAnimation;
 import com.xswxm.controller.network.PostTask;
+import com.xswxm.controller.utils.SpUtils;
 
 import static com.xswxm.controller.global.Variables.wifiSSID;
 import static com.xswxm.controller.global.Variables.wifiPSK;
@@ -125,8 +126,8 @@ public class GuideActivity extends Activity implements View.OnClickListener {
                                     isExistedWiFiSelected = false;
                                     isLocked = true;
                                 } else {
-                                    //WifiPSK is not necessary as the the configuration of this access point of the device has already been stored in the wifi Manager
                                     wifiSSID = selectSSID;
+                                    wifiPSK = SpUtils.getString(GuideActivity.this, wifiSSID);
                                     Log.e("Selected SSID", selectSSID);
                                     isExistedWiFiSelected = true;
                                     isLocked = false;
@@ -353,15 +354,7 @@ public class GuideActivity extends Activity implements View.OnClickListener {
                 boolean remove;
                 for (int i = ssidList.size() - 1; i >= 0; i--) {
                     //Check existence, set a boolean value 'remove' as the tag to remove the item
-                    remove = true;
-                    for( WifiConfiguration wifiConfiguration : wifiManager.getConfiguredNetworks() ) {
-                        if(wifiConfiguration.SSID != null && wifiConfiguration.SSID.equals("\"" + ssidList.get(i) + "\"")) {
-                            remove = false;
-                            break;
-                        }
-                    }
-                    //Remove the item if it does not match any of the records
-                    if (remove) {
+                    if (SpUtils.getString(this, ssidList.get(i)).isEmpty()) {
                         Log.e("RemoveSSID",  ssidList.get(i));
                         ssidList.remove(i);
                     }
@@ -395,13 +388,20 @@ public class GuideActivity extends Activity implements View.OnClickListener {
                 try {
                     Log.e("QR", intentResult.getContents());
                     String[] message = intentResult.getContents().split("\n");
-                    wifiSSID = message[0];
-                    wifiPSK = message[1];
-                    isQRScanned = true;
-                    isLocked = false;
-                    scanQRBtn.setText(getString(R.string.btn_qr_device_scanned));
-                    scanQRBtn.setEnabled(false);
-                    Toast.makeText(this, getString(R.string.qr_device_scan_successfully), Toast.LENGTH_SHORT).show();
+                    if (message[0].substring(0, 4).equals("ESP_") && message[0].length() == 10 && message[1].length() == 32) {
+                        wifiSSID = message[0];
+                        wifiPSK = message[1];
+                        isQRScanned = true;
+                        isLocked = false;
+                        scanQRBtn.setText(getString(R.string.btn_qr_device_scanned));
+                        scanQRBtn.setEnabled(false);
+                        // Store the secret after a successful read
+                        SpUtils.putString(this, wifiSSID, wifiPSK);
+                        Log.e("SpUtils", "secret from QR Code is stored successfully!");
+                        Toast.makeText(this, getString(R.string.qr_device_scan_successfully), Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, getString(R.string.qr_device_scan_failed), Toast.LENGTH_SHORT).show();
+                    }
                 } catch (Exception ignored) {
                     Toast.makeText(this, getString(R.string.qr_device_scan_failed), Toast.LENGTH_SHORT).show();
                 }
@@ -500,24 +500,21 @@ public class GuideActivity extends Activity implements View.OnClickListener {
         }
 
         //Add wifi configuration (SSID and Password) to the WiFiConfiguration
-        //This should be only executed for the first-time configuration.
-        if (first_config) {
-            List<WifiConfiguration> list;
-            //Update list
-            list = wifiManager.getConfiguredNetworks();
-            for( WifiConfiguration wifiConfiguration : list ) {
-                Log.e("WifiConfiguration",  wifiConfiguration.SSID);
-                if(wifiConfiguration.SSID != null && wifiConfiguration.SSID.equals("\"" + wifiSSID + "\"")) {
-                    wifiManager.removeNetwork(wifiConfiguration.networkId);
-                    Log.e("RemoveWifiConfiguration",  wifiConfiguration.SSID);
-                }
+        List<WifiConfiguration> list;
+        //Update list
+        list = wifiManager.getConfiguredNetworks();
+        for( WifiConfiguration wifiConfiguration : list ) {
+            Log.e("WifiConfiguration",  wifiConfiguration.SSID);
+            if(wifiConfiguration.SSID != null && wifiConfiguration.SSID.equals("\"" + wifiSSID + "\"")) {
+                wifiManager.removeNetwork(wifiConfiguration.networkId);
+                Log.e("RemoveWifiConfiguration",  wifiConfiguration.SSID);
             }
-            WifiConfiguration conf = new WifiConfiguration();
-            conf.SSID = "\"" + wifiSSID + "\"";
-            conf.preSharedKey = "\""+ wifiPSK +"\"";
-            wifiManager.addNetwork(conf);
-            Log.e("AddWifiConfiguration", wifiSSID);
         }
+        WifiConfiguration conf = new WifiConfiguration();
+        conf.SSID = "\"" + wifiSSID + "\"";
+        conf.preSharedKey = "\""+ wifiPSK +"\"";
+        wifiManager.addNetwork(conf);
+        Log.e("AddWifiConfiguration", wifiSSID);
 
         //Scan WiFi
         connectWiFiBtn.setEnabled(false);
